@@ -12,6 +12,8 @@ set -x -g MANPATH /usr/local/opt/findutils/libexec/gnuman $MANPATH
 
 # Setting up TTY for GPG
 set -x -g GPG_TTY (tty)
+set -x -g SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
+gpg-connect-agent updatestartuptty /bye
 
 # Fish
 set -g fish_user_paths "/usr/local/opt/icu4c/bin" $fish_user_paths
@@ -23,6 +25,9 @@ set -U fisher_copy true
 set -U FZF_LEGACY_KEYBINDINGS 0
 set -U FZF_COMPLETE 1
 
+# Go
+set -x -g PATH $HOME/go/bin $PATH
+
 # Rust
 set -x -g PATH $HOME/.cargo/bin $PATH
 
@@ -33,10 +38,10 @@ status --is-interactive; and source (pyenv init -|psub)
 status --is-interactive; and source (rbenv init -|psub)
 
 # Erlang
-status --is-interactive; and . "$HOME/kerl/21.2/activate.fish"
+status --is-interactive; and . "$HOME/kerl/22.0/activate.fish"
 
 # Elixir
 status --is-interactive; and source "$HOME/.kiex/scripts/kiex.fish"
 
-# GCP
-status --is-interactive; and source /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.fish.inc
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.fish.inc' ]; if type source > /dev/null; source '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.fish.inc'; else; . '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.fish.inc'; end; end

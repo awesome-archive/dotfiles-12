@@ -2,6 +2,7 @@
     link:
       create: true
       relink: true
+      force: true
     shell:
       stdin: true
       stdout: true
@@ -12,39 +13,54 @@
       force: true
     "~/.config":
       force: true
+    "~/.config/nvim":
+      force: true
 
 - link:
-    "~/.tmux.conf": ".tmux.conf"
-    "~/.spacemacs": ".spacemacs"
-    "~/.gitconfig": "global_gitconfig"
     "~/.gitignore_global": "global_gitignore"
-    "~/.config/alacritty/alacritty.yml": "alacritty.yml"
-    "~/.config/nvim/init.vim": "nvim_init.vim"
+    "~/.config/ghostty/config": "ghostty_config"
+    "~/.config/nvim":
+      path: "nvim"
+    "~/.config/starship.toml": "starship.toml"
     "~/.config/fish/config.fish": "fish_config.fish"
-    "~/.config/fish/fishfile": "fishfile"
+    "~/.config/fish/fish_plugins": "fish_plugins"
+    "~/.config/mise/config.toml": "mise_config.toml"
+    "~/.config/tmux/tmux.conf": "tmux.conf"
     "~/.config/fish/functions/":
       glob: true
       path: "fish_functions/*.fish"
 
 - shell:
-    -
-      command: sh .macos
-      description: Setup MacOS
-    -
-      command: sh brew.sh
-      description: Install MacOS essential packages
-    -
-      command: sh tmux.sh
-      description: Install TMUX TPM
-    -
-      command: sh install_powerline_fonts.sh
-      description: Install Powerline fonts
-    -
-      command: sh fisher
-      description: Bootstrap fishshell
-    -
-      command: sh init_gcloud.sh
-      description: Initialize GCP
-    -
-      command: git submodule sync --recursive
-      description: Sync Dotbot
+    # Require Full Disk Access for terminal used to run this script
+    - command: sh macos/apply.sh
+      description: Apply macOS defaults
+
+    - command: cp global_gitconfig ~/.gitconfig
+      description: Copy git config
+
+    - command: sh scripts/setup_git_local.sh
+      description: Setup local git signing key
+
+    - command: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || true'
+      description: Bootstrap Homebrew if not present
+
+    - command: brew bundle --file=Brewfile
+      description: Install all Homebrew packages
+
+    - command: sh scripts/setup_ssh_agent.sh
+      description: Setup Homebrew SSH agent with FIDO2 support
+
+    - command: mise install
+      description: Install language runtimes via mise
+
+    - command: 'fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher" || true'
+      description: Bootstrap Fisher
+
+    - command: 'fish -c "fisher update"'
+      description: Install fish plugins from fish_plugins
+
+    - command: sh init_gcloud.sh
+      description: Initialize Google Cloud SDK
+
+    - command: git submodule sync --recursive
+      description: Sync git submodules

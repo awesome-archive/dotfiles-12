@@ -11,3 +11,9 @@ Thumbs.db
 .Trashes
 
 .config/fisherman
+
+# Agent
+.mnemosyne
+.omo
+.serena
+.sisyphus

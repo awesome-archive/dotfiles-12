@@ -1,42 +1,88 @@
-set -x -g LS_COLORS "di=38;5;27:fi=38;5;7:ln=38;5;51:pi=40;38;5;11:so=38;5;13:or=38;5;197:mi=38;5;161:ex=38;5;9:"
+# === Homebrew ===
+set -x -g PATH /opt/homebrew/bin $PATH
 
-set -x -g TERM "xterm-256color"
+# === Shell ===
+set -g fish_greeting ""  # Disable default greeting (starship handles prompt)
 
-# Coreutils bin and man folders
-set -x -g PATH /usr/local/opt/coreutils/libexec/gnubin $PATH
-set -x -g MANPATH /usr/local/opt/coreutils/libexec/gnuman $MANPATH
+# Cleanup stale universal vars from old theme/FZF (run once on fresh config load)
+set -l _old_theme_ctx (string join '' theme_display_ k8s_context)
+if set -q $_old_theme_ctx; set -e $_old_theme_ctx; end
+set -l _old_theme_ns (string join '' theme_display_ k8s_namespace)
+if set -q $_old_theme_ns; set -e $_old_theme_ns; end
 
-# Findutils bin and man folders
-set -x -g PATH /usr/local/opt/findutils/libexec/gnubin $PATH
-set -x -g MANPATH /usr/local/opt/findutils/libexec/gnuman $MANPATH
+# === SSH Agent (Homebrew openssh — FIDO2/YubiKey) ===
+set -gx SSH_AUTH_SOCK "$HOME/.ssh/agent.sock"
 
-# Setting up TTY for GPG
-set -x -g GPG_TTY (tty)
+# === Locale/Editor ===
+set -gx LANG en_US.UTF-8
+set -gx EDITOR nvim
+set -gx LANGUAGE en_US
+set -gx LC_TIME en_US.UTF-8
 
-# Fish
-set -g fish_user_paths "/usr/local/opt/icu4c/bin" $fish_user_paths
-set -g fish_user_paths "/usr/local/opt/icu4c/sbin" $fish_user_paths
-set -g fish_user_paths "/usr/local/sbin" $fish_user_paths
-set -U fisher_copy true
+# === Podman ===
+set -gx CONTAINERS_MACHINE_PROVIDER "libkrun"
 
-# Fish fzf
-set -U FZF_LEGACY_KEYBINDINGS 0
-set -U FZF_COMPLETE 1
+# === FZF ===
+set -gx FZF_LEGACY_KEYBINDINGS 0
+set -gx FZF_COMPLETE 1
 
-# Rust
+# === Rust ===
 set -x -g PATH $HOME/.cargo/bin $PATH
 
-# Python
-status --is-interactive; and source (pyenv init -|psub)
+# === Erlang ===
+# Always build Erlang documents
+set -gx KERL_BUILD_DOCS yes
+set -gx KERL_CONFIGURE_OPTIONS "--disable-jit"
 
-# Ruby
-status --is-interactive; and source (rbenv init -|psub)
+# === Elixir ===
+# Enable iex shell history
+set -gx ERL_AFLAGS "-kernel shell_history enabled"
 
-# Erlang
-status --is-interactive; and . "$HOME/kerl/21.2/activate.fish"
+# === Python ===
+set -x -g PATH $HOME/.local/bin $PATH
+set -x -g PIPENV_VENV_IN_PROJECT 1
 
-# Elixir
-status --is-interactive; and source "$HOME/.kiex/scripts/kiex.fish"
+# === VS Code ===
+string match -q "$TERM_PROGRAM" "vscode"
+and . (code --locate-shell-integration-path fish)
 
-# GCP
-status --is-interactive; and source /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.fish.inc
+# === Runtime Manager ===
+if command -q mise; mise activate fish | source; end
+
+# === Prompt ===
+if command -q starship; starship init fish | source; end
+
+# === Navigation ===
+if command -q zoxide; zoxide init fish | source; end
+
+# === Modern CLI Aliases ===
+if command -q eza
+    alias ls "eza --icons --group-directories-first"
+    alias tree "eza --tree --icons"
+end
+if command -q bat
+    alias cat "bat --paging=never"
+end
+if command -q btop; alias top "btop"; end
+if command -q lazygit; alias lg "lazygit"; end
+
+# === Google Cloud SDK ===
+if [ -f '/opt/homebrew/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.fish.inc' ]; if type source > /dev/null; source '/opt/homebrew/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.fish.inc'; else; . '/opt/homebrew/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.fish.inc'; end; end
+
+# === pnpm ===
+set -gx PNPM_HOME "$HOME/.pnpm"
+if not string match -q -- $PNPM_HOME $PATH
+  set -gx PATH "$PNPM_HOME" $PATH
+end
+
+# === Extensions ===
+if [ -f $HOME/.config/fish/config-extension.fish ]; if type source > /dev/null; source $HOME/.config/fish/config-extension.fish; end; end
+
+# === PATH: OpenCode ===
+fish_add_path $HOME/.config/opencode/bin
+
+# === PATH: Terragrunt ===
+fish_add_path $HOME/.terragrunt/bin
+
+# opencode
+fish_add_path $HOME/.opencode/bin
